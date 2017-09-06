@@ -1,60 +1,55 @@
-% IMAGE_NAME (1) Container Image Pages
-% MAINTAINER
-% DATE
+% systemtap (1) Container Image Pages
+% Tomas Tomecek
+% September 6th, 2017
 
 # NAME
-Image_name - short description
+systemtap — programmable system-wide instrumentation system running in a container.
 
 # DESCRIPTION
-Describe how image is used (user app, service, base image, builder image, etc.), the services or features it provides, and environment it is intended to run in (stand-alone docker, atomic super-privileged, oc multi-container app, etc.).
+This container image provides functionality of packages `systemtap`, `systemtap-client` and `systemtap-testsuite`, which contains plenty of examples.
 
 # USAGE
-Describe how to run the image as a container and what factors might influence the behavior of the image itself. Provide specific command lines that are appropriate for how the container should be run. Here is an example for a container image meant to be run by the atomic command:
+In order to use systemtap successfully, it requires debug information for running kernel, namely package `kernel-debuginfo`. There are two ways to do this when running systemtap in this container:
 
-To pull the container and set up the host system for use by the XYZ container, run:
+1. Install `kernel-debuginfo` and `kernel-devel` inside container.
 
-    # atomic install XYZimage
+2. Install `kernel-debuginfo` and `kernel-devel` on host system and mount the required files into container.
 
-To run the XYZ container (after it is installed), run:
+Once you figured out the place where to install the required packages, we can proceed with how the container is meant to be started. Let's go through a list of helpful options:
+ * `--cap-add SYS_MODULE` — systemtap needs to inject a kernel module into running kernel so it requires this capability.
+ * `-v /sys/kernel/debug:/sys/kernel/debug` — systemtap accesses `/sys/kernel/debug`, you can either mount that filesystem into container, or provide capability `CAP_SYS_ADMIN` to the container so systemtap can mount it.
+ * `-v /usr/lib/debug:/usr/lib/debug -v /usr/src/kernels:/usr/src/kernels -v /usr/lib/modules/:/usr/lib/modules/` — when you installed the required kernel packages on your host system, these are the places where the files live so with these options you can make them available within the container.
+ * `--security-opt label:disable` — when mounting directories inside the container, if SELinux is in enforcing mode, the container process may not have permissions to access files which are being mounted from host system. This option prevents changing labels on files which are being mounted inside (`:z` and `:Z` fields of `-v` change labels).
 
-    # atomic run XYZimage
+So the resulting commandline may look like this when the packages are installed on your host:
+```
+$ docker run --cap-add SYS_MODULE -v /sys/kernel/debug:/sys/kernel/debug -v /usr/src/kernels:/usr/src/kernels -v /usr/lib/modules/:/usr/lib/modules/ -v /usr/lib/debug:/usr/lib/debug --security-opt label:disable -t -i f26/tools bash
+```
 
-To remove the XYZ container (not the image) from your system, run:
+And this could be the commandline when you installed the packages in the container:
+```
+$ docker run --cap-add SYS_MODULE -v /sys/kernel/debug:/sys/kernel/debug -t -i f26/tools bash
+```
 
-    # atomic uninstall XYZimage
+Please be sure that the `kernel-debuginfo` and `kernel-devel` packages match exactly the kernel you booted. `uname -a` command provides information about running kernel.
 
-Also, describe default configuration options (when defined): hostname, domainname, user ID run as, exposed ports, volumes, working directory, command run by default, etc.
+You can also use atomic command to invoke the container:
 
-${OS_SPECIFIC_INFO}
-
-# ENVIRONMENT VARIABLES
-Explain all environment variables available to run the image in different ways without the need of rebuilding the image. Change variables on the docker command line with -e option. For example:
-
-MYSQL_PASSWORD=mypass
-                The password set for the current MySQL user.
-
-${VERSION_SPECIFIC_INFO}
-
-# LABELS
-Describe LABEL settings (from the Dockerfile that created the image) that contains pertinent information.
-For containers run by atomic, that could include INSTALL, RUN, UNINSTALL, and UPDATE LABELS. Others could
-include BZComponent, Name, Version, Release, and Architecture. This section is optional.
+```
+$ atomic run f26/systemtap /usr/share/systemtap/examples/io/iotop.stp
+```
 
 
 # SECURITY IMPLICATIONS
-If you expose ports or run with privileges, note those and provide an explanation. For example:
-
--d
-    Runs continuously as a daemon process in the background
-
--p 3306:3306
-    Opens  container  port  3306  and  maps it to the same port on the Host.
+Please make sure that only trusted users are allowed to invoke systemtap in
+your infrastructure, because they are able to inspect every bit of information
+which goes through kernel.
 
 
 # HISTORY
-Similar to a Changelog of sorts which can be as detailed as the maintainer wishes.
+Release 1: initial release
 
 # SEE ALSO
 
-Does Red Hat provide MariaDB technical support on RHEL 7? https://access.redhat.com/solutions/1247193
-Install and Deploy a Mariadb Container Image https://access.redhat.com/documentation/en/red-hat-enterprise-linux-atomic-host/7/single/getting-started-guide/#install_and_deploy_a_mariadb_container
+Please consult upstream documentation for more information: https://sourceware.org/systemtap/wiki
+You can also read SystemTap Beginners Guide, which is available at Red Hat Customer Portal: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/SystemTap_Beginners_Guide/index.html
