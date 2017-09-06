@@ -13,4 +13,6 @@ LABEL com.redhat.component="$NAME" \
 RUN dnf install -y systemtap-testsuite systemtap systemtap-client && \
     dnf clean all
 
+COPY ./root /
+
 CMD ["/bin/bash"]
