@@ -45,6 +45,12 @@ You can also use atomic command to invoke the container:
 $ atomic run f26/systemtap /usr/share/systemtap/examples/io/iotop.stp
 ```
 
+If you need an inspiration, there is a plenty of examples available in the container:
+
+```
+$ ls -lha /usr/share/systemtap/examples/
+```
+
 
 # SECURITY IMPLICATIONS
 Please make sure that only trusted users are allowed to invoke systemtap in
