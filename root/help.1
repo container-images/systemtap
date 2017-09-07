@@ -15,7 +15,7 @@ This container image provides functionality of packages \fB\fCsystemtap\fR, \fB\
 
 .SH USAGE
 .PP
-In order to use systemtap successfully, it requires debug information for running kernel, namely package \fB\fCkernel\-debuginfo\fR\&. There are two ways to do this when running systemtap in this container:
+In order to use systemtap successfully, it requires debug information your booted kernel, namely package \fB\fCkernel\-debuginfo\fR\&. There are two ways to do this when running systemtap in this container:
 .IP "  1." 5
 
 .PP
@@ -26,11 +26,38 @@ Install \fB\fCkernel\-debuginfo\fR and \fB\fCkernel\-devel\fR inside container.
 Install \fB\fCkernel\-debuginfo\fR and \fB\fCkernel\-devel\fR on host system and mount the required files into container.
 
 .PP
+\fB\fCkernel\-debuginfo\fR package is usually available in \fB\fCfedora\-debuginfo\fR repository (or \fB\fCupdates\-debuginfo\fR). So this is how you can install the package:
+
+.PP
+.RS
+
+.nf
+$ dnf install \-y \-\-enablerepo="fedora\-debuginfo" \-\-enablerepo="updates\-debuginfo" kernel\-debuginfo
+
+.fi
+.RE
+
+.PP
+Please be sure that the \fB\fCkernel\-debuginfo\fR and \fB\fCkernel\-devel\fR packages match exactly the kernel you booted. \fB\fCuname \-a\fR command provides information about running kernel.
+
+.PP
 Once you figured out the place where to install the required packages, we can proceed with how the container is meant to be started. Let's go through a list of helpful options:
- * \fB\fC\-\-cap\-add SYS\_MODULE\fR — systemtap needs to inject a kernel module into running kernel so it requires this capability.
- * \fB\fC\-v /sys/kernel/debug:/sys/kernel/debug\fR — systemtap accesses \fB\fC/sys/kernel/debug\fR, you can either mount that filesystem into container, or provide capability \fB\fCCAP\_SYS\_ADMIN\fR to the container so systemtap can mount it.
- * \fB\fC\-v /usr/lib/debug:/usr/lib/debug \-v /usr/src/kernels:/usr/src/kernels \-v /usr/lib/modules/:/usr/lib/modules/\fR — when you installed the required kernel packages on your host system, these are the places where the files live so with these options you can make them available within the container.
- * \fB\fC\-\-security\-opt label:disable\fR — when mounting directories inside the container, if SELinux is in enforcing mode, the container process may not have permissions to access files which are being mounted from host system. This option prevents changing labels on files which are being mounted inside (\fB\fC:z\fR and \fB\fC:Z\fR fields of \fB\fC\-v\fR change labels).
+.IP \(bu 2
+
+.PP
+\fB\fC\-\-cap\-add SYS\_MODULE\fR — systemtap needs to inject a kernel module into running kernel so it requires this capability.
+.IP \(bu 2
+
+.PP
+\fB\fC\-v /sys/kernel/debug:/sys/kernel/debug\fR — systemtap accesses \fB\fC/sys/kernel/debug\fR, you can either mount that filesystem into container, or provide capability \fB\fCCAP\_SYS\_ADMIN\fR to the container so systemtap can mount it.
+.IP \(bu 2
+
+.PP
+\fB\fC\-v /usr/lib/debug:/usr/lib/debug \-v /usr/src/kernels:/usr/src/kernels \-v /usr/lib/modules/:/usr/lib/modules/\fR — when you installed the required kernel packages on your host system, these are the places where the files live so with these options you can make them available within the container.
+.IP \(bu 2
+
+.PP
+\fB\fC\-\-security\-opt label:disable\fR — when mounting directories inside the container, if SELinux is in enforcing mode, the container process may not have permissions to access files which are being mounted from host system. This option prevents changing labels on files which are being mounted inside (\fB\fC:z\fR and \fB\fC:Z\fR fields of \fB\fC\-v\fR change labels).
 
 .PP
 So the resulting commandline may look like this when the packages are installed on your host:
@@ -57,9 +84,6 @@ $ docker run \-\-cap\-add SYS\_MODULE \-v /sys/kernel/debug:/sys/kernel/debug \-
 .RE
 
 .PP
-Please be sure that the \fB\fCkernel\-debuginfo\fR and \fB\fCkernel\-devel\fR packages match exactly the kernel you booted. \fB\fCuname \-a\fR command provides information about running kernel.
-
-.PP
 You can also use atomic command to invoke the container:
 
 .PP
@@ -67,6 +91,18 @@ You can also use atomic command to invoke the container:
 
 .nf
 $ atomic run f26/systemtap /usr/share/systemtap/examples/io/iotop.stp
+
+.fi
+.RE
+
+.PP
+If you need an inspiration, there is a plenty of examples available in the container:
+
+.PP
+.RS
+
+.nf
+$ ls \-lha /usr/share/systemtap/examples/
 
 .fi
 .RE
