@@ -9,11 +9,19 @@ systemtap — programmable system-wide instrumentation system running in a conta
 This container image provides functionality of packages `systemtap`, `systemtap-client` and `systemtap-testsuite`, which contains plenty of examples.
 
 # USAGE
-In order to use systemtap successfully, it requires debug information for running kernel, namely package `kernel-debuginfo`. There are two ways to do this when running systemtap in this container:
+In order to use systemtap successfully, it requires debug information your booted kernel, namely package `kernel-debuginfo`. There are two ways to do this when running systemtap in this container:
 
 1. Install `kernel-debuginfo` and `kernel-devel` inside container.
 
 2. Install `kernel-debuginfo` and `kernel-devel` on host system and mount the required files into container.
+
+`kernel-debuginfo` package is usually available in `fedora-debuginfo` repository (or `updates-debuginfo`). So this is how you can install the package:
+
+```
+$ dnf install -y --enablerepo="fedora-debuginfo" --enablerepo="updates-debuginfo" kernel-debuginfo
+```
+
+Please be sure that the `kernel-debuginfo` and `kernel-devel` packages match exactly the kernel you booted. `uname -a` command provides information about running kernel.
 
 Once you figured out the place where to install the required packages, we can proceed with how the container is meant to be started. Let's go through a list of helpful options:
  * `--cap-add SYS_MODULE` — systemtap needs to inject a kernel module into running kernel so it requires this capability.
@@ -30,8 +38,6 @@ And this could be the commandline when you installed the packages in the contain
 ```
 $ docker run --cap-add SYS_MODULE -v /sys/kernel/debug:/sys/kernel/debug -t -i f26/tools bash
 ```
-
-Please be sure that the `kernel-debuginfo` and `kernel-devel` packages match exactly the kernel you booted. `uname -a` command provides information about running kernel.
 
 You can also use atomic command to invoke the container:
 
