@@ -1,29 +1,18 @@
-.PHONY: doc build run default test
+.PHONY: doc build run default
 
-VERSION ?= x.y
-
-TEST_IMAGE_NAME := container-images-tests
+IMAGE_NAME := modularitycontainers/systemtap
+HELP_MD := ./help/help.md
 
 default: run
 
 doc:
-	cd $(VERSION)/$(TARGET) && make doc VERSION=$(VERSION)
+	go-md2man -in=${HELP_MD} -out=./root/help.1
 
-build:
-	cd $(VERSION)/$(TARGET) && make build VERSION=$(VERSION)
+build: doc
+	docker build --tag=$(IMAGE_NAME) .
 
 run:
-	cd $(VERSION)/$(TARGET) && make run VERSION=$(VERSION)
+	atomic run $(IMAGE_NAME)
 
-test:
-	cd $(VERSION)/$(TARGET) && make test VERSION=$(VERSION)
-
-test-in-container: test-container
-	docker run --rm -ti -e VERSION=$(VERSION) -v /var/run/docker.sock:/var/run/docker.sock:Z -v ${PWD}:/src $(TEST_IMAGE_NAME)
-
-test-container:
-	docker build --tag=$(TEST_IMAGE_NAME) -f ./Dockerfile.tests .
-
-all:
-	cd x.y && make build VERSION=x.y
-	cd x.z && make build VERSION=x.z
+clean:
+	docker rm systemtap
