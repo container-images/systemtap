@@ -20,10 +20,10 @@ In order to use systemtap successfully, it requires debug information your boote
 `kernel-debuginfo` package is usually available in `fedora-debuginfo` repository (or `updates-debuginfo`). So this is how you can install the package:
 
 ```
-$ dnf install -y --enablerepo="fedora-debuginfo" --enablerepo="updates-debuginfo" kernel-debuginfo
+$ dnf install -y --enablerepo="fedora-debuginfo" --enablerepo="updates-debuginfo" kernel-debuginfo-$(uname -r)
 ```
 
-Please be sure that the `kernel-debuginfo` and `kernel-devel` packages match exactly the kernel you booted. `uname -a` command provides information about running kernel.
+Please be sure that the `kernel-debuginfo` and `kernel-devel` packages match exactly the kernel you booted. `uname -r` command provides information about running kernel.
 
 Once you figured out the place where to install the required packages, we can proceed with how the container is meant to be started. Let's go through a list of helpful options:
 
